@@ -22,8 +22,9 @@ const CampaignForm = ({ campaign }: { campaign?: any }) => {
   };
 
   const handleScheduleChange = (index: number, key: string, value: any) => {
-    const newSchedules = schedules.slice();
-    newSchedules[index][key] = key === 'dayOfWeek' ? parseInt(value, 10) : value;
+    const newSchedules = schedules.map((schedule: any, idx: any) => 
+      idx === index ? { ...schedule, [key]: value } : schedule
+    );
     setSchedules(newSchedules);
   };
 
