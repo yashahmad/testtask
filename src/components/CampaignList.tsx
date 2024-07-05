@@ -4,7 +4,7 @@ import { RootState } from '../store';
 import { SquarePen } from 'lucide-react';
 
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import CountdownTimer from './CountdownTimer';
+// import CountdownTimer from './CountdownTimer';
 
 import { getNextActivationTime } from '@/lib/scheduleUtils';
 import { useRouter } from 'next/navigation';
@@ -36,7 +36,7 @@ const CampaignList = () => {
               <TableCell className="font-medium">{campaign?.type}</TableCell>
               <TableCell>{campaign?.startDate}</TableCell>
               <TableCell>{campaign?.endDate}</TableCell>
-              <TableCell className="text-right">{nextActivationTime}</TableCell>
+              <TableCell className="text-right">{nextActivationTime?.nextUpcomingDate} {"|"} {nextActivationTime?.timeDifference}</TableCell>
               <TableCell><SquarePen color="black" size={16} onClick={() => handleEditCampaign(campaign?.id)} /></TableCell>
             </TableRow>
           );

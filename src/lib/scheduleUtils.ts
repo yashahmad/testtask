@@ -1,40 +1,51 @@
-import { Campaign, Schedule } from "@/store/slices/campaignSlice";
+import { Campaign } from "@/store/slices/campaignSlice";
 
-// Utility function to add days to a date
-const addDays = (date: Date, days: number) => {
-    const result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
-}
-
-const getDayOfWeekIndex = (dayOfWeek: number) => {
-    return (dayOfWeek + 6) % 7; // Adjusting to make 1 (Monday) = 0 index
-}
-
-export const getNextActivationTime = (campaign: Campaign) => {
+export function getNextActivationTime(campaign: Campaign) {
     const { startDate, endDate, schedules } = campaign;
     const start = new Date(startDate);
     const end = new Date(endDate);
+    const now = new Date();
 
-    let nextUpcomingDate = null;
+    // Utility function to add days to a date (returns a new ISO string)
+    function addDays(date: string, days: number): string {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result.toISOString();
+    }
 
-    for (let date = start; date <= end; date = addDays(date, 1)) {
-        const dayOfWeek = date.getDay();
+    let nextUpcomingDate: string | null = null;
+
+    // Iterate through each date within the range
+    for (let date = startDate; new Date(date) <= end; date = addDays(date, 1)) {
+        const dayOfWeek = new Date(date).getDay();
 
         for (const schedule of schedules) {
-            if (getDayOfWeekIndex(schedule.dayOfWeek) === dayOfWeek) {
+            if (schedule.dayOfWeek == dayOfWeek) {
                 const scheduleStart = new Date(date);
                 const [startHour, startMinute] = schedule.startTime.split(':').map(Number);
                 scheduleStart.setHours(startHour, startMinute, 0, 0);
 
-                if (scheduleStart >= start && scheduleStart <= end) {
-                    if (!nextUpcomingDate || scheduleStart < nextUpcomingDate) {
-                        nextUpcomingDate = scheduleStart;
+                const scheduleStartISO = scheduleStart.toISOString();
+                if (scheduleStart >= now && scheduleStart <= end) {
+                    if (!nextUpcomingDate || new Date(scheduleStartISO) < new Date(nextUpcomingDate)) {
+                        nextUpcomingDate = scheduleStartISO;
                     }
                 }
             }
         }
     }
 
-    return nextUpcomingDate ? nextUpcomingDate.toDateString() : null;
-};
+    if (nextUpcomingDate) {
+        const nextUpcomingDateString = new Date(nextUpcomingDate).toDateString();
+        const timeDifference = new Date(nextUpcomingDate).getTime() - now.getTime();
+        const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+
+        return {
+            nextUpcomingDate: nextUpcomingDateString,
+            timeDifference: `${days} days, ${hours} hours, ${minutes} minutes`
+        };
+    }
+    return null;
+}
