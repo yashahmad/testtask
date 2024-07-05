@@ -30,13 +30,13 @@ const CampaignList = () => {
       </TableHeader>
       <TableBody>
         {campaigns.length > 0 ? campaigns.map((campaign) => {
-          const nextActivationTime = getNextActivationTime(campaign.schedules);
+          const nextActivationTime = getNextActivationTime(campaign);
           return (
             <TableRow key={campaign?.id}>
               <TableCell className="font-medium">{campaign?.type}</TableCell>
               <TableCell>{campaign?.startDate}</TableCell>
               <TableCell>{campaign?.endDate}</TableCell>
-              <TableCell className="text-right"><CountdownTimer targetDate={nextActivationTime} /></TableCell>
+              <TableCell className="text-right">{nextActivationTime}</TableCell>
               <TableCell><SquarePen color="black" size={16} onClick={() => handleEditCampaign(campaign?.id)} /></TableCell>
             </TableRow>
           );

@@ -1,12 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface Schedule {
+export interface Schedule {
   dayOfWeek: number;
   startTime: string;
   endTime: string;
 }
 
-interface Campaign {
+export interface Campaign {
   id: string;
   type: string;
   startDate: string;

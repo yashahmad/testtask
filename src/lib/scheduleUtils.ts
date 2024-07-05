@@ -1,38 +1,40 @@
-const dayOfWeekToName = (day: number) => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return days[day];
-};
+import { Campaign, Schedule } from "@/store/slices/campaignSlice";
 
-export const getNextActivationTime = (schedules: any[]) => {
-    const now = new Date();
-    const currentDay = now.getDay();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
+// Utility function to add days to a date
+const addDays = (date: Date, days: number) => {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+}
 
-    let nextActivation: Date | null = null;
-    let minTimeDifference = Infinity;
+const getDayOfWeekIndex = (dayOfWeek: number) => {
+    return (dayOfWeek + 6) % 7; // Adjusting to make 1 (Monday) = 0 index
+}
 
-    schedules.forEach(schedule => {
-        const scheduleDay = schedule.dayOfWeek;
-        const scheduleStart = parseInt(schedule.startTime.split(':')[0]) * 60 + parseInt(schedule.startTime.split(':')[1]);
+export const getNextActivationTime = (campaign: Campaign) => {
+    const { startDate, endDate, schedules } = campaign;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
 
-        let timeDifference = 0;
-        if (scheduleDay === currentDay) {
-            if (scheduleStart > currentTime) {
-                timeDifference = scheduleStart - currentTime;
-            } else {
-                timeDifference = 24 * 60 - (currentTime - scheduleStart);
+    let nextUpcomingDate = null;
+
+    for (let date = start; date <= end; date = addDays(date, 1)) {
+        const dayOfWeek = date.getDay();
+
+        for (const schedule of schedules) {
+            if (getDayOfWeekIndex(schedule.dayOfWeek) === dayOfWeek) {
+                const scheduleStart = new Date(date);
+                const [startHour, startMinute] = schedule.startTime.split(':').map(Number);
+                scheduleStart.setHours(startHour, startMinute, 0, 0);
+
+                if (scheduleStart >= start && scheduleStart <= end) {
+                    if (!nextUpcomingDate || scheduleStart < nextUpcomingDate) {
+                        nextUpcomingDate = scheduleStart;
+                    }
+                }
             }
-        } else if (scheduleDay > currentDay) {
-            timeDifference = (scheduleDay - currentDay) * 24 * 60 - currentTime + scheduleStart;
-        } else {
-            timeDifference = (7 - currentDay + scheduleDay) * 24 * 60 - currentTime + scheduleStart;
         }
+    }
 
-        if (timeDifference < minTimeDifference) {
-            minTimeDifference = timeDifference;
-            nextActivation = new Date(now.getTime() + timeDifference * 60000);
-        }
-    });
-
-    return nextActivation;
+    return nextUpcomingDate ? nextUpcomingDate.toDateString() : null;
 };
